@@ -34,9 +34,11 @@ $err:=cURL ("pop3://exchange.4d.com";$optionNames;$optionValues;$in;$out)
 
 ###ポイント①
 
-POP3のURL仕様は，平文（クリアテキスト）のパスワード記述を明示的に禁止しています。つまり，``pop3://user:pass@exchange.4d.com``のようにパスワードをURLに含めることはできません。
+ユーザー名とパスワードは，``CURLOPT_USERNAME``と``CURLOPT_PASSWORD``にそれぞれ渡すか，コロン記号で連結した文字列を``CURLOPT_USERPWD``に渡します。
 
-ユーザー名とパスワードは，``CURLOPT_USERNAME``と``CURLOPT_PASSWORD``にそれぞれ渡すか，コロン記号で連結した文字列を``CURLOPT_USERPWD``に渡す必要があります。
+**注記**: POP3のURL仕様は，平文（クリアテキスト）のパスワード記述を明示的に禁止しています。つまり，``pop3://user:pass@exchange.4d.com``のようにパスワードをURLに含めることはできません。とはいえ，cURLは，URL文字列を解析し，ユーザー名とパスワードを取り出すことができるように作られているので，URLにユーザー名とパスワードを含めても，実際にはPOP3の認証ができます。
+
+https://curl.haxx.se/mail/lib-2011-10/0259.html
 
 ###ポイント②
 
