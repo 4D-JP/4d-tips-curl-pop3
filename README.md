@@ -1,8 +1,6 @@
 # 4d-tips-curl-pop3
 cURLプラグインを使用してメールを受信するサンプル
 
-###cURLでメールを受信する
-
 **はじめに**
 
 * cURLはさまざまなURLプロトコルをサポートするクライアント・プログラムです。
@@ -46,7 +44,7 @@ POP3のコマンド名は，URLに基づいてcURLが自動的に発行します
 
 メッセージの番号とサイズの一覧は，スペース区切り・``CRLF``改行で返されます。``Match regex``で配列に分解すると便利です。
 
-``
+```
 $result:=Convert to text($out;"UTF-8")
 $i:=1
 ARRAY LONGINT($pos;0)
@@ -57,4 +55,4 @@ While (Match regex("(\\d+)\\s+(\\d+)";$result;$i;$pos;$len))
   APPEND TO ARRAY($messageNumbers;Substring($result;$pos{1};$len{1}))
   $i:=$pos{2}+$len{2}
 End while 
-``
+```
