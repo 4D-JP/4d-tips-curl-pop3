@@ -54,8 +54,9 @@ ARRAY LONGINT($len;0)
 ARRAY TEXT($messageIds;0)
 ARRAY TEXT($messageNumbers;0)
 While (Match regex("(\\d+)\\s+(\\d+)";$result;$i;$pos;$len))
-  APPEND TO ARRAY($messageNumbers;Substring($result;$pos{1};$len{1}))
-  $i:=$pos{2}+$len{2}
+	APPEND TO ARRAY($messageNumbers;Substring($result;$pos{1};$len{1}))
+	APPEND TO ARRAY($messageLengths;Substring($result;$pos{2};$len{2}))
+	$i:=$pos{2}+$len{2}
 End while 
 ```
 
