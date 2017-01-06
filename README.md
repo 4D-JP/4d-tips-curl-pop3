@@ -98,6 +98,10 @@ https://curl.haxx.se/mail/lib-2011-10/0258.html
 
 ###サンプルプログラム
 
+https://github.com/miyako/4d-plugin-curl
+
+メソッド``POP3_Get``より引用
+
 ```
   //options
 $save_on_disk:=True
