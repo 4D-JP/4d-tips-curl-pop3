@@ -58,3 +58,35 @@ While (Match regex("(\\d+)\\s+(\\d+)";$result;$i;$pos;$len))
   $i:=$pos{2}+$len{2}
 End while 
 ```
+
+###受信トレイのメッセージをダウンロードする
+
+**注記:**
+
+POP3には，フォルダーの概念が存在しません。サーバーから返されるのは，まだ削除されていない，受信トレイのメッセージの番号だけです。
+
+ポイント①
+
+メッセージのデータは，ファイルまたはBLOBで受け取ることができます。
+
+* ファイルに保存する場合
+
+``CURLOPT_WRITEDATA``オプションに保存ファイル名（フルパス）を指定します。パスは，システム標準（POSIXではない）形式で記述します。
+
+* BLOBで受信する場合
+
+``CURLOPT_WRITEDATA``オプションを指定しなければ，BLOBにデータが返されます。
+
+```
+$countMessages:=Size of array($messageNumbers)
+
+For ($i;1;$countMessages)
+	$err:=cURL ("pop3://exchange.4d.com/"+$messageNumbers{$i};$optionNames;$optionValues;$in;$out)
+End for 
+```
+
+ポイント②
+
+受信したいメッセージは番号で指定します。URLのパスにコンポーネントにメッセージ番号が渡された場合，自動的に``RETR``コマンドが発行されます。1回のURLリクエストで1件のメールをダウンロードすることができます。メッセージを削除するには，``CURLOPT_CUSTOMREQUEST``で``DELE``を指定します。ただし，cURLプラグインは，内部的に``curl_easy_perform``をコールしており，1回のコマンドでログイン〜トランザクションが完結するように作られているので，メッセージの削除には向いてないかもしれません。 
+
+https://curl.haxx.se/mail/lib-2011-10/0258.html
