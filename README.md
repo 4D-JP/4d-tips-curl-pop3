@@ -91,3 +91,98 @@ End for
 受信したいメッセージは番号で指定します。URLのパスにコンポーネントにメッセージ番号が渡された場合，自動的に``RETR``コマンドが発行されます。1回のURLリクエストで1件のメールをダウンロードすることができます。メッセージを削除するには，``CURLOPT_CUSTOMREQUEST``で``DELE``を指定します。ただし，cURLプラグインは，内部的に``curl_easy_perform``をコールしており，1回のコマンドでトランザクションが完結するように作られているので，メッセージの削除には向いてないかもしれません。 
 
 https://curl.haxx.se/mail/lib-2011-10/0258.html
+
+###サンプルプログラム
+
+```
+  //options
+$save_on_disk:=True
+$display_progress:=True
+
+C_BLOB($in;$out)
+C_LONGINT($err)
+ARRAY LONGINT($optionNames;0)
+ARRAY TEXT($optionValues;0)
+
+APPEND TO ARRAY($optionNames;CURLOPT_USERPWD)
+APPEND TO ARRAY($optionValues;"user:pass")
+
+  //callbacks
+APPEND TO ARRAY($optionNames;CURLOPT_XFERINFOFUNCTION)
+APPEND TO ARRAY($optionValues;"")
+$CURLOPT_XFERINFOFUNCTION:=Size of array($optionValues)
+
+APPEND TO ARRAY($optionNames;CURLOPT_DEBUGFUNCTION)
+APPEND TO ARRAY($optionValues;"")
+$CURLOPT_DEBUGFUNCTION:=Size of array($optionValues)
+
+$optionValues{$CURLOPT_DEBUGFUNCTION}:="CB_DEBUG"
+
+$err:=cURL ("pop3://exchange.4d.com";$optionNames;$optionValues;$in;$out)
+
+If ($err=0)
+
+	$result:=Convert to text($out;"UTF-8")
+	$i:=1
+
+	ARRAY LONGINT($pos;0)
+	ARRAY LONGINT($len;0)
+
+	ARRAY TEXT($messageIds;0)
+	ARRAY TEXT($messageLengths;0)
+
+	While (Match regex("(\\d+)\\s+(\\d+)";$result;$i;$pos;$len))
+		APPEND TO ARRAY($messageNumbers;Substring($result;$pos{1};$len{1}))
+		APPEND TO ARRAY($messageLengths;Substring($result;$pos{2};$len{2}))
+		$i:=$pos{2}+$len{2}
+	End while 
+
+	If (($display_progress))
+		$progressId:=Progress New 
+		Progress SET PROGRESS ($progressId;0)
+		Progress SET BUTTON ENABLED ($progressId;True)
+
+		APPEND TO ARRAY($optionNames;CURLOPT_XFERINFODATA)
+		APPEND TO ARRAY($optionValues;String($progressId))
+	End if 
+
+	If ($save_on_disk)
+		APPEND TO ARRAY($optionNames;CURLOPT_WRITEDATA)
+		APPEND TO ARRAY($optionValues;"")
+		$CURLOPT_WRITEDATA:=Size of array($optionValues)
+		$folderPath:=System folder(Desktop)+Generate UUID+Folder separator
+		CREATE FOLDER($folderPath;*)
+	End if 
+
+	$countMessages:=Size of array($messageNumbers)
+
+	$optionValues{$CURLOPT_XFERINFOFUNCTION}:="POP3_XFERINFOFUNCTION"
+
+	For ($i;1;$countMessages)
+
+		If ($display_progress)
+			Progress SET TITLE ($progressId;String($i;"Message:^^^^0"))
+		End if 
+
+		If ($save_on_disk)
+			$optionValues{$CURLOPT_WRITEDATA}:=$folderPath+$messageNumbers{$i}+".eml"
+		End if 
+
+		If ($err=0) & ($display_progress)
+			Progress SET PROGRESS ($progressId;$i/$countMessages)
+		End if 
+
+		$err:=cURL ("pop3://exchange.4d.com/"+$messageNumbers{$i};$optionNames;$optionValues;$in;$out)
+
+		If ($err#0)
+			$i:=$countMessages+1
+		end if
+
+	End for 
+
+	If ($display_progress)
+		Progress QUIT ($progressId)
+	End if 
+
+End if 
+```
